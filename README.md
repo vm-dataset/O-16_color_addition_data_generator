@@ -1,6 +1,6 @@
-# Additive Color Mixture Data Generator 🎨
+# Color Addition Data Generator 🎨
 
-A data generator for creating synthetic "Additive Color Mixture" generation tasks. This generator creates datasets where two colored circular balls move toward each other at the same speed until they completely merge. The overlapping region displays the additive color mixture of the original colors.
+A physics simulation data generator for **additive color mixing tasks**. This generator creates scenarios where two colored balls move toward each other and merge, requiring models to predict and animate the additive color mixture that results from their combination.
 
 ---
 
@@ -9,15 +9,11 @@ A data generator for creating synthetic "Additive Color Mixture" generation task
 - [Quick Start](#-quick-start)
 - [Project Structure](#-project-structure)
 - [Output Format](#-output-format)
-- [Customization Guide](#-customization-guide)
-  - [Step 1: Configure Task Parameters](#step-1-configure-task-parameters-srcconfigpy)
-  - [Step 2: Implement Generation Logic](#step-2-implement-generation-logic-srcgeneratorpy)
-  - [Step 3: Define Prompts](#step-3-define-prompts-srcpromptspy)
-  - [Step 4: Define Rubrics](#step-4-define-rubrics)
+- [Configuration & Color Physics](#️-configuration--color-physics)
+- [Generated Prompts & Examples](#-generated-prompts--examples)
 - [Usage Examples](#-usage-examples)
-- [Core Concepts](#-core-concepts)
-- [Common Task Types](#-common-task-types)
-- [Best Practices](#-best-practices)
+- [Core Components](#-core-components)
+- [Technical Implementation](#-technical-implementation)
 - [Troubleshooting](#-troubleshooting)
 
 ---
@@ -27,9 +23,8 @@ A data generator for creating synthetic "Additive Color Mixture" generation task
 ### 1. Clone and Setup Environment
 
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd template-data-generator-3
+# Navigate to the generator directory
+cd O-16_color_addition_data_generator
 
 # Create virtual environment
 python3 -m venv venv
@@ -63,463 +58,293 @@ Generated data will be saved in `data/questions/{domain}_task/` directory, with 
 ## 📁 Project Structure
 
 ```
-template-data-generator-3/
-├── core/                          # ✅ Core framework code (DO NOT MODIFY)
-│   ├── __init__.py               # Export core classes and functions
-│   ├── base_generator.py         # Abstract base generator class
-│   ├── schemas.py                # Data models (TaskPair)
-│   ├── image_utils.py            # Image processing utilities
-│   ├── video_utils.py            # Video generation utilities
-│   └── output_writer.py          # File output utilities
-│
-├── src/                           # ⚠️ Your task code (NEEDS CUSTOMIZATION)
-│   ├── __init__.py               # Export task-related classes
-│   ├── config.py                 # Task configuration (TaskConfig)
-│   ├── generator.py             # Task generator (TaskGenerator)
-│   └── prompts.py               # Prompt and rubric templates
-│
+O-16_color_addition_data_generator/
+├── core/                    # 🔧 Framework utilities
+│   ├── base_generator.py   # Abstract base class
+│   ├── schemas.py          # Pydantic models (TaskPair, etc.)
+│   ├── image_utils.py      # Image rendering helpers
+│   ├── video_utils.py      # MP4 video generation
+│   └── output_writer.py    # Standardized file output
+├── src/                     # 🎨 Color mixing implementation
+│   ├── generator.py        # Additive color physics & animation
+│   ├── prompts.py          # Color mixing prompt templates
+│   └── config.py           # Ball properties & mixing parameters
 ├── examples/
-│   └── generate.py               # Data generation entry script
-│
-├── data/
-│   └── questions/                # Generated data output directory
-│       └── {domain}_task/
-│           └── {task_id}/
-│               ├── first_frame.png
-│               ├── final_frame.png
-│               ├── prompt.txt
-│               ├── rubric.txt
-│               └── ground_truth.mp4 (optional)
-│
-├── requirements.txt               # Python dependencies
-├── setup.py                       # Package installation configuration
-└── README.md                      # This document
+│   └── generate.py         # Generation script
+└── data/questions/         # Generated color mixing scenarios
+    └── color_addition_task/
+        └── color_addition_XXXX/
+            ├── first_frame.png     # Two separated colored balls
+            ├── final_frame.png     # Single merged ball with mixed color
+            ├── prompt.txt          # Task instructions
+            └── ground_truth.mp4    # Ball merging animation
 ```
 
 ### File Descriptions
 
-**Core Framework (`core/`)** - Do not modify these files:
-- `base_generator.py`: Defines the `BaseGenerator` abstract base class and `GenerationConfig` configuration class
-- `schemas.py`: Defines the `TaskPair` data model containing all task information
-- `image_utils.py`: Provides image rendering and processing utility functions
-- `video_utils.py`: Provides video generation functionality (optional)
-- `output_writer.py`: Responsible for saving generated tasks to disk
+**Core Framework (`core/`)** - Framework utilities:
+- `base_generator.py`: Abstract base class and configuration
+- `schemas.py`: TaskPair data model (no rubrics)
+- `image_utils.py`: PIL image rendering helpers  
+- `video_utils.py`: MP4 video generation with OpenCV
+- `output_writer.py`: File output in standardized format
 
-**Your Task Code (`src/`)** - Needs customization:
-- `config.py`: Define your task-specific configuration parameters
-- `generator.py`: Implement your task generation logic
-- `prompts.py`: Define prompt and rubric templates
+**Color Addition Implementation (`src/`)**:
+- `config.py`: Ball properties and color mixing parameters
+- `generator.py`: Additive RGB physics and animation logic
+- `prompts.py`: Color mixing prompt templates
 
 ---
 
 ## 📦 Output Format
 
-Each generated task contains the following files:
+Each color addition task generates:
 
 ```
-data/questions/{domain}_task/{task_id}/
-├── first_frame.png      # Initial state image (REQUIRED)
-├── final_frame.png      # Target state image (OPTIONAL but recommended)
-├── prompt.txt           # Task prompt (REQUIRED)
-├── rubric.txt           # Scoring rubric (REQUIRED)
-└── ground_truth.mp4     # Solution video (OPTIONAL)
+data/questions/color_addition_task/color_addition_XXXX/
+├── first_frame.png      # Two colored balls at separate positions
+├── final_frame.png      # Single merged ball with additive color
+├── prompt.txt           # Color mixing task instructions
+└── ground_truth.mp4     # Animation showing balls merging
 ```
 
-### File Descriptions
-
-- **`first_frame.png`**: The initial state image of the task. This is the starting point for model reasoning.
-- **`final_frame.png`**: The final/target state image of the task. Shows the expected result.
-- **`prompt.txt`**: Instruction text for the model, describing what task needs to be completed.
-- **`rubric.txt`**: Scoring rubric for evaluating model output quality. Contains detailed evaluation criteria.
-- **`ground_truth.mp4`**: (Optional) Animation video showing the transition from initial to final state.
+**Example Task Components:**
+- **Initial State**: Two colored balls (e.g., red + blue) positioned apart
+- **Final State**: Single ball with additive mixed color (e.g., magenta) 
+- **Animation**: Smooth ball movement with real-time color mixing in overlapping regions
+- **Prompt**: "Two circular balls with different colors... move toward each other... additive color mixture..."
 
 ---
 
-## 🎨 Customization Guide
+## ⚙️ Configuration & Color Physics
 
-To create your own task generator, you need to modify three files in the `src/` directory. Follow these steps:
-
-### Step 1: Configure Task Parameters (`src/config.py`)
-
-Define your task-specific parameters in the `TaskConfig` class:
+### Key Color Mixing Settings (`src/config.py`)
 
 ```python
-from core import GenerationConfig
-from pydantic import Field
-
 class TaskConfig(GenerationConfig):
-    """Your task configuration"""
+    # Task Identity
+    domain: str = Field(default="color_addition")
+    image_size: tuple[int, int] = Field(default=(512, 512))
     
-    # 1. Override defaults
-    domain: str = Field(default="maze")  # Task domain name
-    image_size: tuple[int, int] = Field(default=(512, 512))  # Image dimensions
-    
-    # 2. Video settings (optional)
-    generate_videos: bool = Field(default=True)
-    video_fps: int = Field(default=10)
-    
-    # 3. Add your task-specific parameters
+    # Ball Properties
     ball_radius: int = Field(default=60, description="Radius of the circular balls")
     min_distance: float = Field(default=200, description="Minimum distance between ball centers")
     edge_margin: int = Field(default=80, description="Margin from image edges")
+    
+    # Video Generation
+    generate_videos: bool = Field(default=True, description="Create MP4 animations")
+    video_fps: int = Field(default=10, description="Animation frame rate")
 ```
 
-**Inherited attributes** (from `GenerationConfig`):
-- `num_samples`: Number of samples to generate
-- `random_seed`: Random seed (for reproducibility)
-- `output_dir`: Output directory path
-- `difficulty`: General difficulty level (optional)
+### Color Physics Implementation
 
-### Step 2: Implement Generation Logic (`src/generator.py`)
+- **Additive RGB Mixing**: R₁+R₂, G₁+G₂, B₁+B₂
+- **Normalization**: Proportional scaling when sum exceeds 255
+- **Color Range**: 50-255 per channel (avoids too-dark colors)
+- **Real-time Mixing**: Pixel-perfect overlap detection during animation
 
-Implement the `TaskGenerator` class, inheriting from `BaseGenerator`:
+### Advanced Animation Features
 
+**Sophisticated Overlap Handling**:
+- **Pixel-perfect detection** using NumPy coordinate grids
+- **Three rendering regions**: Ball1-only, Ball2-only, Overlap
+- **Real-time color mixing** in overlap areas during animation
+- **Preserved original colors** in non-overlapping regions
+
+**Color Mixing Algorithm**:
 ```python
-from core import BaseGenerator, TaskPair, ImageRenderer
-from .config import TaskConfig
-from .prompts import get_prompt, get_rubric
+# Additive mixing with normalization
+mixed_r = color1[0] + color2[0]
+mixed_g = color1[1] + color2[1] 
+mixed_b = color1[2] + color2[2]
 
-class TaskGenerator(BaseGenerator):
-    """Your task generator"""
-    
-    def __init__(self, config: TaskConfig):
-        super().__init__(config)
-        self.renderer = ImageRenderer(image_size=config.image_size)
-        # Initialize your task-specific resources
-    
-    def generate_task_pair(self, task_id: str) -> TaskPair:
-        """Generate one task pair - this is the core method"""
-        
-        # 1. Generate task data (problem, solution, etc.)
-        task_data = self._generate_task_data()
-        
-        # 2. Render images
-        first_image = self._render_initial_state(task_data)
-        final_image = self._render_final_state(task_data)
-        
-        # 3. Generate video (optional)
-        video_path = None
-        if self.config.generate_videos:
-            video_path = self._generate_video(task_data, task_id)
-        
-        # 4. Get prompt and rubric
-        task_type = task_data.get("type", "default")
-        prompt = get_prompt(task_type)
-        rubric = get_rubric(task_type)
-        
-        # 5. Return TaskPair
-        return TaskPair(
-            task_id=task_id,
-            domain=self.config.domain,
-            prompt=prompt,
-            rubric=rubric,
-            first_image=first_image,
-            final_image=final_image,
-            ground_truth_video=video_path
-        )
-    
-    # Implement your helper methods
-    def _generate_task_data(self) -> dict:
-        """Generate task data"""
-        # Your logic
-        pass
-    
-    def _render_initial_state(self, task_data: dict):
-        """Render initial state image"""
-        # Your logic
-        pass
-    
-    def _render_final_state(self, task_data: dict):
-        """Render final state image"""
-        # Your logic
-        pass
+# Proportional scaling if any channel > 255
+if max(mixed_r, mixed_g, mixed_b) > 255:
+    scale = 255.0 / max_value
+    # Apply scaling to all channels
 ```
 
-**Key Points**:
-- Must implement `generate_task_pair(task_id: str) -> TaskPair`
-- Use `ImageRenderer` to create images
-- Use `get_prompt()` and `get_rubric()` to get text content
-- Video generation is optional
+**Motion Physics**:
+- **Linear interpolation** for smooth ball movement
+- **Equal speeds** toward calculated midpoint
+- **25 transition frames** + hold frames for clear visualization
 
-### Step 3: Define Prompts (`src/prompts.py`)
+### Generated Prompts & Examples
 
-Define your prompt templates in the `PROMPTS` dictionary:
+**Sample Generated Prompts** (from actual examples):
+- *"Two circular balls with different colors are positioned at different locations. Animate the balls moving toward each other at the same speed until they completely merge as one. When the balls overlap, the overlapping region should display the additive color mixture of their original colors."*
+- *"Two colored circular balls start at different positions. They move toward each other at equal speeds until they fully overlap and merge into one. The overlapping region during movement and the final merged ball should show the additive color mixture of the two original ball colors."*
 
-```python
-PROMPTS = {
-    "default": [
-        "Two circular balls with different colors are positioned at different locations. Animate the balls moving toward each other at the same speed until they completely merge as one. When the balls overlap, the overlapping region should display the additive color mixture of their original colors.",
-        "Two colored circular balls start at different positions. They move toward each other at equal speeds until they fully overlap and merge into one. The overlapping region during movement and the final merged ball should show the additive color mixture of the two original ball colors.",
-    ],
-}
+**Task Requirements**:
+- ✅ Two different colored balls at separate positions
+- ✅ Equal movement speeds toward midpoint
+- ✅ Additive color mixing in overlap regions
+- ✅ Complete merging with final mixed color
+- ✅ Smooth animation throughout process
 
-def get_prompt(task_type: str = "default") -> str:
-    """Randomly select a prompt for the given task type"""
-    prompts = PROMPTS.get(task_type, PROMPTS["default"])
-    return random.choice(prompts)
-```
+### Example Color Combinations
 
-**Tips**:
-- You can define different prompts for different task types
-- Each type can have multiple variants, the system will randomly select
-- Prompts should be clear, specific, and describe what the model needs to do
+**Generated Color Mixing Examples:**
+- **Red + Pink** → Bright Red/Orange (normalized RGB addition)
+- **Blue + Yellow** → Light Yellow/Beige (complementary mixing)
+- **Brown + Lavender** → Peachy/Tan (complex RGB combination)
 
-### Step 4: Define Rubrics
-
-Add the `RUBRICS` dictionary in `src/prompts.py`:
-
-```python
-RUBRICS = {
-    "default": [
-        """Check if the solution correctly animates both balls moving toward each other at the same speed. Verify that the balls move in straight lines toward each other and meet at the midpoint between their initial positions. When the balls overlap during movement, check that only the overlapping region displays the additive color mixture while non-overlapping parts retain their original colors. Verify that the animation stops after the two balls completely merge into a single ball at the midpoint, and that the final merged ball shows the correct normalized additive color mixture.""",
-        
-        """Verify that the solution shows both balls moving at equal speeds toward each other until they completely merge. Check that during partial overlap, the overlapping region correctly displays the additive color mixture while maintaining the original colors in non-overlapping areas. Ensure the animation continues until the balls fully merge into one ball at the midpoint, then stops. Check that the final merged ball shows the correct normalized additive color mixture of the original two colors.""",
-    ],
-}
-
-def get_rubric(task_type: str = "default") -> str:
-    """Randomly select a rubric for the given task type"""
-    rubrics = RUBRICS.get(task_type, RUBRICS["default"])
-    return random.choice(rubrics)
-```
-
-**Rubric Format Requirements**:
-- ✅ **Use natural language descriptions** that align with human intuition, describing checkpoints like a human evaluator would
-- ✅ **Example style**:
-  - "Check if the final rotation angle and position match the expected result."
-  - "Verify that the solution correctly identifies the checkmating move."
-  - "Ensure the animation smoothly transitions from initial to final state."
-- ❌ **Do NOT use**:
-  - Numbered lists (e.g., "1. 2. 3.")
-  - Points or percentages (e.g., "1 point", "40%", "Award 1 point if...")
-  - Structured scoring tables
-- You can define different rubrics for different difficulty levels
-- Rubrics should be objective and actionable, using natural language to describe what needs to be checked
+**Color Generation Range:**
+- Each RGB channel: 50-255 (avoids too-dark colors)
+- Ensures visible, interesting mixing results
+- Proper normalization when sum exceeds 255
 
 ---
 
 ## 💡 Usage Examples
 
-### Basic Usage
-
 ```bash
-# Generate 50 samples
+# Generate 50 color mixing tasks
 python examples/generate.py --num-samples 50
 
-# Generate 100 samples, specify output directory
-python examples/generate.py --num-samples 100 --output data/my_dataset
+# Quick test with 3 samples
+python examples/generate.py --num-samples 3 --seed 42
 
-# Use random seed for reproducibility
-python examples/generate.py --num-samples 50 --seed 42
-
-# Don't generate videos (faster)
+# Fast generation without videos  
 python examples/generate.py --num-samples 100 --no-videos
-```
 
-### View Help
+# Custom output directory
+python examples/generate.py --num-samples 10 --output data/my_colors
 
-```bash
+# View all options
 python examples/generate.py --help
 ```
 
 ---
 
-## 🧠 Core Concepts
+## 🧠 Core Components
 
-### TaskPair
+### TaskPair Schema
 
-`TaskPair` is the core data structure for task data, containing:
+The `TaskPair` data structure contains:
 
-- `task_id`: Unique task identifier (e.g., `"color_mixing_0001"`)
-- `domain`: Task domain (e.g., `"color_mixing"`, `"maze"`)
-- `prompt`: Task prompt text
-- `rubric`: Scoring rubric text
-- `first_image`: Initial state image (PIL Image)
-- `final_image`: Final state image (PIL Image, optional)
-- `ground_truth_video`: Solution video path (optional)
+- `task_id`: Unique identifier (e.g., `"color_addition_0001"`)
+- `domain`: Always `"color_addition"`
+- `prompt`: Task instruction text
+- `first_image`: Two separate colored balls (PIL Image)
+- `final_image`: Single merged ball with mixed color (PIL Image)
+- `ground_truth_video`: MP4 animation path (optional)
 
-### BaseGenerator
+### Color Physics
 
-All task generators inherit from `BaseGenerator`, which provides:
-
-- `generate_dataset()`: Method for batch generating tasks
-- `config`: Configuration object
-- Random seed management
-
-You only need to implement the `generate_task_pair(task_id: str) -> TaskPair` method.
-
-### ImageRenderer
-
-Utility class for creating and manipulating images:
-
+**Additive RGB Mixing Formula:**
 ```python
-from core import ImageRenderer
+mixed_color = (
+    min(255, color1[0] + color2[0]),  # Red channel
+    min(255, color1[1] + color2[1]),  # Green channel  
+    min(255, color1[2] + color2[2])   # Blue channel
+)
 
-renderer = ImageRenderer(image_size=(512, 512))
-img = renderer.create_image()  # Create blank image
-# Use PIL for drawing...
+# With proportional normalization if any channel > 255
+if max(mixed_color) > 255:
+    scale_factor = 255.0 / max(mixed_color)
+    mixed_color = tuple(int(c * scale_factor) for c in mixed_color)
 ```
 
 ---
 
-## 🎯 Common Task Types
+## 🎯 Technical Implementation
 
-### 1. Color Mixing Tasks (e.g., Additive Color Mixture)
+### Animation Pipeline
 
-- Generate two colored circular balls with random colors and positions
-- Animate balls moving toward each other at the same speed
-- Apply additive color mixing in overlapping regions (RGB addition with normalization)
-- Create animations showing the merging process until complete overlap
+1. **Color Generation**: Two random colors (RGB 50-255 per channel)
+2. **Position Calculation**: Valid placements with minimum distance constraint
+3. **Motion Physics**: Linear interpolation toward exact midpoint
+4. **Overlap Detection**: Pixel-perfect masking using NumPy coordinate grids
+5. **Color Mixing**: Real-time additive RGB in overlapping regions
+6. **Video Generation**: 25 transition frames + hold frames at 10 FPS
 
-### 2. Mazes
+### Pixel-Perfect Overlap Algorithm
 
-- Use graph algorithms to generate mazes (e.g., depth-first search)
-- Find solution paths
-- Render maze and path animations
+```python
+# Create coordinate grids for efficient computation
+y_coords, x_coords = np.ogrid[:height, :width]
 
-### 3. Sudoku
+# Distance from each ball center
+dist1 = np.sqrt((x_coords - ball1_x)**2 + (y_coords - ball1_y)**2)
+dist2 = np.sqrt((x_coords - ball2_x)**2 + (y_coords - ball2_y)**2)
 
-- Generate sudoku puzzles
-- Ensure unique solutions
-- Render initial and completed states
-
-### 4. Image Transformations
-
-- Generate original images
-- Apply transformations (rotation, scaling, color adjustments, etc.)
-- Create transformation animations
-
-### 5. Logical Reasoning
-
-- Generate logical problems
-- Create visual representations
-- Show reasoning processes
+# Define regions
+ball1_mask = dist1 <= radius
+ball2_mask = dist2 <= radius  
+overlap_mask = ball1_mask & ball2_mask
+```
 
 ---
 
-## ✨ Best Practices
+## ✨ Quality Features
 
-### 1. Code Organization
+### Visual Excellence
 
-- Break complex logic into small methods (e.g., `_generate_task_data()`, `_render_initial_state()`)
-- Use type hints to improve code readability
-- Add docstrings to explain method purposes
+- **High Resolution**: 512x512 images for clear detail
+- **Visible Colors**: RGB range 50-255 prevents too-dark balls
+- **Smooth Animation**: 25 transition frames with hold periods
+- **Clean Rendering**: Black outlines for ball visibility
 
-### 2. Configuration Management
+### Physics Accuracy
 
-- Put all adjustable parameters in `TaskConfig`
-- Use meaningful default values
-- Add descriptions for parameters
+- **Correct Additive Mixing**: Proper RGB channel addition
+- **Normalization**: Proportional scaling when values exceed 255  
+- **Linear Motion**: Equal speeds toward calculated midpoint
+- **Collision Detection**: Pixel-perfect overlap boundaries
 
-### 3. Prompt Design
+### Reproducibility
 
-- Clear, specific, unambiguous
-- Prepare different prompts for different difficulty levels
-- Maintain consistent prompt style
-
-### 4. Rubrics
-
-- Use natural language descriptions that align with human intuition, describing checkpoints like a human evaluator would
-- Do not use numbered lists or points; use fluent natural language
-- Rubrics should cover all important aspects of the task (correctness, quality, visual effects, etc.)
-- Rubrics should be objective and actionable, clearly stating what needs to be checked
-- Example: Use natural language descriptions starting with "Check if..." or "Verify that..."
-
-### 5. Image Quality
-
-- Use sufficiently high resolution (at least 512x512)
-- Ensure text and details are clearly visible
-- Maintain consistent visual style
-
-### 6. Reproducibility
-
-- Use random seeds
-- Record configuration parameters used
-- Save generation scripts and parameters
+- **Seeded Generation**: `--seed 42` for consistent results
+- **Configurable Parameters**: All physics values in `TaskConfig`
+- **Consistent Output**: Standardized file naming and structure
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Issue 1: Import Error
-
-**Error**: `ModuleNotFoundError: No module named 'core'`
-
-**Solution**: Ensure the package is installed:
+### Import Errors
 ```bash
+# ModuleNotFoundError: No module named 'core'
 pip install -e .
 ```
 
-### Issue 2: Image Generation Failure
+### Video Generation Issues
+```bash
+# OpenCV not available
+pip install opencv-python==4.10.0.84
 
-**Error**: PIL-related errors
+# Skip videos for faster generation
+python examples/generate.py --num-samples 50 --no-videos
+```
 
-**Solution**: 
-- Check if image dimensions are reasonable
-- Ensure all images are converted to RGB mode
-- Use `ImageRenderer.ensure_rgb()` to ensure correct format
+### Performance Issues
+```bash
+# Large datasets - generate in batches
+python examples/generate.py --num-samples 100 --no-videos
 
-### Issue 3: Video Generation Failure
+# Memory issues - reduce image size in src/config.py
+image_size: tuple[int, int] = Field(default=(256, 256))
+```
 
-**Error**: OpenCV or video encoding errors
-
-**Solution**:
-- Check if `opencv-python` is installed
-- Try using `--no-videos` to skip video generation
-- Check if output directory has write permissions
-
-### Issue 4: Out of Memory
-
-**Error**: Out of memory when generating large numbers of samples
-
-**Solution**:
-- Reduce `num_samples` and generate in batches
-- Use `--no-videos` to reduce memory usage
-- Reduce `image_size`
-
-### Issue 5: Task Generation Too Slow
-
-**Solution**:
-- Optimize image rendering logic
-- Use `--no-videos` to skip video generation
-- Consider parallelization (requires additional implementation)
+### Color Issues
+- Colors too dark: Adjust color range in `src/generator.py` (increase min from 50)
+- Mixing looks wrong: Check additive formula in `_generate_task_data()`
+- Balls too small: Increase `ball_radius` in `src/config.py`
 
 ---
 
-## 📝 Checklist
+## 📝 Quick Start Checklist
 
-Before starting data generation, ensure:
+Before generating color addition tasks:
 
-- [ ] All dependencies are installed (`pip install -r requirements.txt`)
-- [ ] Package is installed (`pip install -e .`)
-- [ ] Configuration in `src/config.py` is customized
-- [ ] Generation logic in `src/generator.py` is implemented
-- [ ] Prompts in `src/prompts.py` are defined
-- [ ] Rubrics in `src/prompts.py` are defined
-- [ ] Tested generating a small number of samples (e.g., 2-5)
-- [ ] Verified generated file formats are correct
+- [ ] Dependencies installed (`pip install -r requirements.txt`)
+- [ ] Package installed (`pip install -e .`)
+- [ ] Test generation: `python examples/generate.py --num-samples 3 --seed 42`
+- [ ] Verify output contains: `first_frame.png`, `final_frame.png`, `prompt.txt`, `ground_truth.mp4`
+- [ ] Check colors look reasonable and balls merge correctly
+- [ ] Confirm additive color mixing appears accurate
 
 ---
 
-## 🤝 Contributing
-
-If you've improved this template, please submit a Pull Request!
-
----
-
-## 📄 License
-
-See the `LICENSE` file for details.
-
----
-
-## 💬 Support
-
-If you have questions, please:
-1. Check the troubleshooting section in this document
-2. Check comments in the code
-3. Review example code (currently color mixing task)
-
----
-
-**Happy Generating! 🎉**
+**Output**: Each color addition task includes initial state image, final merged state image, task prompt, and optional MP4 animation demonstrating the complete additive color mixing process. 🎨✨
